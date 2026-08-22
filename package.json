@@ -1,0 +1,21 @@
+{
+  "name": "night-ward",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Top-down stealth horror in a derelict facility. Light, sound and attention are systems; the ward is watching.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "test": "vitest run",
+    "playtest": "node scripts/playtest.mjs"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
+  }
+}
