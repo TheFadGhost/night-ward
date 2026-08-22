@@ -88,7 +88,7 @@ export class World {
   }
 
   registerMask(m) {
-    this.masks.push({ on: false, ...m });
+    this.masks.push({ ...m, on: m.on !== false });
   }
 
   applyBlackout(wingId, duration) {

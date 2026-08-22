@@ -25,6 +25,7 @@ export class Player {
   }
 
   update(dt, input, world) {
+    input = input || {};
     if (!this.alive || this.hiddenIn) {
       this.moving = false;
       return;
