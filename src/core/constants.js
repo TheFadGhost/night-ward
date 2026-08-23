@@ -18,7 +18,7 @@ export const SURFACE = {
 
 export const SPEED = {
   walk: 3.4,
-  sprint: 5.6,
+  sprint: 6.25,
   crouch: 1.55,
 };
 
@@ -51,8 +51,8 @@ export const SUSPICION = {
   glanceAt: 30,
   investigateAt: 65,
   chaseAt: 100,
-  riseRate: 85,
-  fallRate: 14,
+  riseRate: 70,
+  fallRate: 20,
 };
 
 export const PROFILES = {
@@ -62,11 +62,11 @@ export const PROFILES = {
     visionHalfAngleDeg: 52,
     hearingMult: 1.15,
     hearThreshold: 0.16,
-    memorySec: 9,
+    memorySec: 6.5,
     speedPatrol: 1.7,
     speedInvestigate: 2.4,
-    speedChase: 5.9,
-    catchRadius: 1.15,
+    speedChase: 5.75,
+    catchRadius: 0.95,
     radioRadius: 15,
     flashlight: true,
   },
@@ -79,7 +79,7 @@ export const PROFILES = {
     memorySec: 12,
     speedPatrol: 1.1,
     speedInvestigate: 3.4,
-    speedChase: 6.4,
+    speedChase: 6.0,
     catchRadius: 2.2,
     listenSec: 4,
     radioRadius: 0,

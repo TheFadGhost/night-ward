@@ -10,15 +10,15 @@ export function findPath(world, sxW, szW, txW, tzW, opts = {}) {
   const tcz = Math.floor(tzW / CELL);
   if (!world.inBounds(tcx, tcz)) return null;
 
-  const passable = (cx, cz) => {
+  const passable = (cx, cz, isStart = false) => {
     if (!world.inBounds(cx, cz)) return false;
     const t = world.tiles[world.idx(cx, cz)];
     if (t === 2 || t === 0) return false;
-    if (t === 3) return doorsPassable;
+    if (t === 3) return doorsPassable || (isStart && world.doorOpen.has(world.doors.get(world.idx(cx, cz))));
     return true;
   };
 
-  if (!passable(scx, scz)) return null;
+  if (!passable(scx, scz, true)) return null;
   if (!passable(tcx, tcz)) {
     let found = false;
     for (const [ox, oz] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {

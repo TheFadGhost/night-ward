@@ -1,7 +1,7 @@
 import { CELL, NOISE, BLACKOUT } from '../core/constants.js';
 import { bus } from '../core/events.js';
 
-const INTERACT_RADIUS = 1.6;
+const INTERACT_RADIUS = 2.05;
 const SMASH_RADIUS = 1.2;
 const BOTTLE_SPEED = 10;
 const BOTTLE_LIFE = 1.2;
@@ -27,16 +27,25 @@ export class Interactables {
       this.list.push({ kind: 'door', id: door.id, x, z, locked: door.locked || null });
     }
     for (const l of d.lockers || []) {
-      this.list.push({ kind: 'locker', id: l.id, x: l.x, z: l.z });
+      l.kind = 'locker';
+      l.taken = false;
+      this.list.push(l);
     }
     for (const b of d.bottles || []) {
-      this.list.push({ kind: 'bottle', id: b.id, x: b.x, z: b.z, taken: false });
+      b.kind = 'bottle';
+      b.taken = false;
+      this.list.push(b);
     }
     for (const s of d.seals || []) {
-      this.list.push({ kind: 'seal', id: s.id, n: s.n, x: s.x, z: s.z, taken: false });
+      s.kind = 'seal';
+      s.taken = false;
+      this.list.push(s);
     }
     if (d.vessel) {
-      this.list.push({ kind: 'vessel', id: d.vessel.id, x: d.vessel.x, z: d.vessel.z, taken: false });
+      const v0 = d.vessel;
+      v0.kind = 'vessel';
+      v0.taken = false;
+      this.list.push(v0);
     }
     if (d.elevator) {
       this.list.push({ kind: 'elevator', id: d.elevator.id, x: d.elevator.x, z: d.elevator.z });
@@ -150,6 +159,8 @@ export class Interactables {
     switch (obj.kind) {
       case 'door': {
         const opening = !this.world.isDoorOpen(obj.id);
+        const SEARCH_R = 2.05;
+        void SEARCH_R;
         if (opening) {
           if (obj.locked === 'archive' && !(g && g.state && g.state.seals && g.state.seals.got >= 3)) {
             return false;
@@ -157,11 +168,16 @@ export class Interactables {
           if (obj.locked === 'elevator' && !(g && g.state && g.state.vessel)) return false;
         }
         this.world.setDoorOpen(obj.id, opening);
+        if (opening && String(obj.id).startsWith('d_archive')) {
+          for (const d of this.world.doors ? this.world.doors.values() : []) {
+            if (String(d).startsWith('d_archive')) this.world.setDoorOpen(d, true);
+          }
+        }
         bus.emit('door', { id: obj.id, open: opening });
         bus.emit('noise', {
           x: obj.x,
           z: obj.z,
-          loud: opening ? NOISE.doorOpen : NOISE.doorClose,
+          loud: (opening ? NOISE.doorOpen : NOISE.doorClose) * (g && g.player && g.player.crouched ? 0.4 : 1),
           type: 'door',
         });
         return true;
@@ -193,7 +209,10 @@ export class Interactables {
         bus.emit('pickup', { kind: 'seal', id: obj.id });
         bus.emit('sealTaken', { n: obj.n, total: 3 });
         if (g.state.seals.got >= 3) {
-          bus.emit('objective', { text: 'The archive seal releases — north door unlocked' });
+          bus.emit('objective', { text: 'The archive seal releases \u2014 north door unlocked' });
+          for (const d of this.world.doors ? this.world.doors : []) {
+            if (String(d[1]).startsWith('d_archive')) this.world.unlockDoor(d[1]);
+          }
         }
         return true;
       }
@@ -204,6 +223,7 @@ export class Interactables {
         bus.emit('vesselTaken', {});
         bus.emit('objective', { text: 'Reach the elevator' });
         bus.emit('alert', { aiId: '*', kind: 'restless' });
+        if (this.world.isLocked) this.world.unlockDoor('d_elev');
         return true;
       }
       case 'elevator': {

@@ -123,6 +123,31 @@ export class Brain {
     }
     this.pathIdx = gi;
     const node = this.path[gi];
+    const { cx: ncx, cz: ncz } = this.world.cellAt(node.x, node.z);
+    const nodeTile = this.world.tiles[this.world.idx(ncx, ncz)];
+    if (nodeTile === 3 && this.world.doors) {
+      const doorId = this.world.doors.get(this.world.idx(ncx, ncz));
+      if (doorId !== undefined && !this.world.doorOpen.has(doorId)) {
+        if (this.world.isLocked && this.world.isLocked(doorId)) {
+          this.path = null;
+          this.repathT = 0;
+          return false;
+        }
+        this._doorWaitT = (this._doorWaitT || 0) + dt;
+        if (this._doorWaitT >= 0.45) {
+          this._doorWaitT = 0;
+          this.world.setDoorOpen(doorId, true);
+          bus.emit('door', { id: doorId, open: true });
+          bus.emit('noise', { x: node.x, z: node.z, loud: 0.6, type: 'door' });
+        }
+        return false;
+      }
+    }
+    if (!this.world.lineOfSight(e.x, e.z, node.x, node.z)) {
+      this.path = null;
+      this.repathT = 0;
+      return false;
+    }
     const ndx = node.x - e.x;
     const ndz = node.z - e.z;
     const nl = Math.hypot(ndx, ndz) || 1;
@@ -140,7 +165,7 @@ export class Brain {
     const rng = (ctx && ctx.rng) || this.rng;
     for (let i = 0; i < 3; i++) {
       if (!rng) break;
-      const rad = rng.range(1.5, 6);
+      const rad = rng.range(1.5, 4);
       const ang = rng.range(0, Math.PI * 2);
       const px = this.lastKnown.x + Math.cos(ang) * rad;
       const pz = this.lastKnown.z + Math.sin(ang) * rad;
@@ -228,6 +253,21 @@ export class Brain {
         const h = hearNoise({ x: e.x, z: e.z }, prof, n, this.world);
         if (!h.heard) continue;
         if (Number.isFinite(prof.hearThreshold) && h.strength < prof.hearThreshold) continue;
+        const distToNoise = Math.hypot(n.x - e.x, n.z - e.z);
+        const hc = this.entity.homeCentroid;
+        const distNoiseToHome = hc ? Math.hypot(n.x - hc.x, n.z - hc.z) : 0;
+        if (prof.kind === 'listener' && this.entity.homeCentroid && distNoiseToHome > 18) continue;
+        const loudKind = n.type === 'glass' || n.type === 'bottle' || (n.loud ?? 0) >= 1.2;
+        const closeBy = Math.hypot(n.x - e.x, n.z - e.z) < 5;
+        if (!loudKind && !closeBy) {
+          const cap = SUSPICION.investigateAt + 5;
+          if (this.suspicion < cap) {
+            this.suspicion = Math.min(cap, this.suspicion + h.strength * HEAR_GAIN);
+            if (!heardInfo) heardInfo = { x: n.x, z: n.z, detail: `heard ${n.type || 'noise'}` };
+            continue;
+          }
+          continue;
+        }
         this.suspicion += h.strength * HEAR_GAIN;
         const info = { x: n.x, z: n.z, detail: `heard ${n.type || 'noise'}` };
         if (!heardInfo) heardInfo = info;
@@ -314,10 +354,27 @@ export class Brain {
         break;
     }
 
-    if (player && catchCheck(e, player, dt)) {
-      if (!this.caughtFired) {
-        this.caughtFired = true;
-        bus.emit('playerCaught', { byId: e.id });
+    const touching = player && !player.hiddenIn && catchCheck(e, player, dt);
+    if (touching) {
+      const lethal =
+        this.state === AI_STATE.CHASE ||
+        (prof.kind === 'listener' && this.state === AI_STATE.LISTEN);
+      if (lethal) {
+        if (!this.caughtFired) {
+          this.caughtFired = true;
+          bus.emit('playerCaught', { byId: e.id });
+        }
+      } else if (
+        this.state === AI_STATE.SEARCH ||
+        this.state === AI_STATE.INVESTIGATE ||
+        this.state === AI_STATE.SUSPICIOUS ||
+        this.state === AI_STATE.PATROL
+      ) {
+        this.suspicion = SUSPICION.chaseAt;
+        this.lastKnown = { x: player.x, z: player.z };
+        if (this.state !== AI_STATE.CHASE) {
+          this.enterChase('found you at close range', player.x, player.z);
+        }
       }
     }
   }
@@ -397,7 +454,9 @@ export class Brain {
       return;
     }
     this.gotoPoint(this.lastKnown, prof.speedChase, dt);
-    if (!seen && this.lostT >= (prof.memorySec || 8)) this.leaveChase(ctx);
+    const far =
+      Math.hypot(this.entity.x - this.lastKnown.x, this.entity.z - this.lastKnown.z) > 18;
+    if (!seen && this.lostT > 1.5 && (this.lostT >= (prof.memorySec || 8) || far)) this.leaveChase(ctx);
   }
 
   doReturn(dt) {

@@ -9,6 +9,19 @@ export class World {
     this.fixtures = [];
     this.masks = [];
     this.blackouts = new Map();
+    this.lockedDoors = new Set();
+  }
+
+  lockDoor(id) {
+    this.lockedDoors.add(id);
+  }
+
+  unlockDoor(id) {
+    this.lockedDoors.delete(id);
+  }
+
+  isLocked(id) {
+    return this.lockedDoors.has(id);
   }
 
   idx(cx, cz) {
@@ -137,6 +150,7 @@ export class World {
     return {
       doorOpen: [...this.doorOpen],
       blackouts: [...this.blackouts.entries()].map(([k, v]) => [k, { ...v }]),
+      lockedDoors: [...this.lockedDoors],
       fixtures: this.fixtures.map((f) => ({ id: f.id, on: f.on })),
       masks: this.masks.map((m) => ({ id: m.id, on: m.on })),
     };

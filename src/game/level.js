@@ -36,6 +36,10 @@ export function buildLevel() {
   set(16, 26, TILE.FLOOR);
   set(11, 16, TILE.DOOR);
   set(11, 28, TILE.DOOR);
+  set(11, 22, TILE.FLOOR);
+  set(11, 26, TILE.FLOOR);
+  set(8, 19, TILE.FLOOR);
+  set(8, 25, TILE.FLOOR);
   set(21, 17, TILE.FLOOR);
   set(21, 29, TILE.DOOR);
 
@@ -60,6 +64,9 @@ export function buildLevel() {
 
   rect(53, 12, 55, 34, TILE.GRATE);
   set(52, 25, TILE.DOOR);
+  set(52, 15, TILE.FLOOR);
+  set(52, 30, TILE.FLOOR);
+  set(56, 26, TILE.FLOOR);
 
   rect(57, 19, 61, 27, TILE.FLOOR);
   set(56, 23, TILE.DOOR);
@@ -151,13 +158,13 @@ export function buildLevel() {
   ];
 
   const seals = [
-    { id: 'seal1', n: 1, ...wc(3, 21) },
+    { id: 'seal1', n: 1, ...wc(13, 16) },
     { id: 'seal2', n: 2, ...wc(60, 23) },
     { id: 'seal3', n: 3, ...wc(31, 42) },
   ];
 
   const breakers = [
-    { id: 'brk_west', wing: 'west', ...wc(2, 24) },
+    { id: 'brk_west', wing: 'west', ...wc(12, 15) },
     { id: 'brk_east', wing: 'east', ...wc(45, 15) },
   ];
 
@@ -178,13 +185,7 @@ export function buildLevel() {
   };
 
   const ais = [
-    {
-      id: 'warden1',
-      kind: 'warden',
-      wing: 'west',
-      ...wc(10, 14),
-      patrolRoute: [wc(10, 14), wc(10, 33), wc(9, 36), wc(4, 36), wc(9, 36), wc(10, 33)],
-    },
+    { id: 'warden1', kind: 'warden', wing: 'west', ...wc(10, 15), pingPong: true, patrolRoute: [wc(10, 15), wc(10, 28)] },
     { id: 'warden2', kind: 'warden', wing: 'west', ...wc(6, 10), pingPong: true, patrolRoute: [wc(6, 10), wc(58, 10)] },
     {
       id: 'warden3',

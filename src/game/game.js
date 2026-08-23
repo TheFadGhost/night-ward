@@ -15,6 +15,7 @@ export class Game {
     for (const m of level.masks) this.world.registerMask(m);
     for (const d of level.objects.doors) {
       this.world.registerDoor(d.id, (d.cx + 0.5) * CELL, (d.cz + 0.5) * CELL);
+      if (d.locked) this.world.lockDoor(d.id);
     }
     this.player = new Player(level.start.x, level.start.z);
     this.ai = new AIManager(level.ais, this.world);

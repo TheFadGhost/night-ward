@@ -46,11 +46,16 @@ export function hearNoise(listenerPos, profile, noiseEvt, world) {
   if (radius <= 0) return { heard: false, strength: 0, reason: 'masked by steam' };
   const d = Math.hypot(listenerPos.x - noiseEvt.x, listenerPos.z - noiseEvt.z);
   if (d > radius) return { heard: false, strength: 0, reason: 'too quiet' };
-  const strength = Math.max(0, Math.min(1, 1 - d / radius));
+  let strength = Math.max(0, Math.min(1, 1 - d / radius));
+  let reason = `${(noiseEvt && noiseEvt.type) || 'noise'} heard`;
+  if (world && !world.lineOfSight(listenerPos.x, listenerPos.z, noiseEvt.x, noiseEvt.z)) {
+    strength *= 0.3;
+    reason = `${(noiseEvt && noiseEvt.type) || 'noise'} heard through a wall`;
+  }
   return {
-    heard: strength > 0 && mult > 0,
+    heard: strength > 0.02 && mult > 0,
     strength,
-    reason: `${(noiseEvt && noiseEvt.type) || 'noise'} heard`,
+    reason,
   };
 }
 

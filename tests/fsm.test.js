@@ -112,7 +112,7 @@ describe('suspicion thresholds', () => {
       t += 0.05;
     }
     expect(brain.suspicion).toBeLessThan(40);
-    expect(brain.suspicion).toBeGreaterThan(36);
+    expect(brain.suspicion).toBeGreaterThan(28);
   });
 
   it('investigate walks toward lastKnown', () => {

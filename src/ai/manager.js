@@ -32,6 +32,17 @@ export class AIManager {
         disabled: false,
       };
       this.entities.push(entity);
+      if (Array.isArray(def.patrolRoute) && def.patrolRoute.length) {
+        let cx = 0;
+        let cz = 0;
+        for (const p of def.patrolRoute) {
+          cx += p.x;
+          cz += p.z;
+        }
+        entity.homeCentroid = { x: cx / def.patrolRoute.length, z: cz / def.patrolRoute.length };
+      } else {
+        entity.homeCentroid = { x: def.x, z: def.z };
+      }
       this.brains.push(new Brain(entity, world));
     }
     this._offBreaker = bus.on('breaker', (evt) => {
