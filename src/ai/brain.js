@@ -421,6 +421,11 @@ export class Brain {
       this.setState(AI_STATE.PATROL);
       return;
     }
+    if (this.stateT > 22) {
+      this.lastKnown = null;
+      this.setState(AI_STATE.RETURN);
+      return;
+    }
     const sp = this.entity.profile.speedInvestigate || this.entity.profile.speedPatrol;
     if (this.gotoPoint(this.lastKnown, sp, dt)) {
       this.setupSearch(ctx);

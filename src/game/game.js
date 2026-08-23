@@ -42,6 +42,9 @@ export class Game {
       bus.on('alert', (e) => this.onAlert(e)),
       bus.on('sealTaken', () => this.onSeal()),
       bus.on('vesselTaken', () => this.onVessel()),
+      bus.on('gameWon', () => {
+        this.won = true;
+      }),
     ];
   }
 
@@ -173,6 +176,16 @@ export class Game {
     }
   }
 
+  proximityOf(kind) {
+    let best = 1;
+    for (const ent of this.ai.entities) {
+      if (ent.kind !== kind || ent.disabled) continue;
+      const d = Math.hypot(ent.x - this.player.x, ent.z - this.player.z);
+      best = Math.min(best, Math.max(0, Math.min(1, 1 - d / 16)));
+    }
+    return kind === 'listener' && this.player.hiddenIn ? best * 0.4 : best;
+  }
+
   nameOf(aiId) {
     return aiId ? aiId.charAt(0).toUpperCase() + aiId.slice(1) : aiId;
   }
@@ -248,7 +261,11 @@ export class Game {
       unlockedElevator: this.state.vessel,
       sealsGot: this.state.seals.got,
       vessel: this.state.vessel,
-      noises: this.recentNoises,
+      noises: this.recentNoises.map((n, i) => ({ ...n, id: `${i}-${Math.round(n.t0 * 100)}` })),
+      blackout: [...this.world.blackouts.keys()],
+      listenerNear: this.proximityOf('listener'),
+      sentinelNear: this.proximityOf('sentinel'),
+      bottles: this.player.bottles,
       threatLevel: threat,
       chaseActive,
       pulse: (Math.sin(this.time * (2 + threat * 6)) + 1) / 2,

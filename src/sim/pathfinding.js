@@ -16,11 +16,18 @@ export function findPath(world, sxW, szW, txW, tzW, opts = {}) {
     return id !== undefined && world.doorOpen.has(id);
   };
 
+  const doorLocked = (cx, cz) => {
+    if (!world.doors || !world.isLocked) return false;
+    const id = world.doors.get(world.idx(cx, cz));
+    return id !== undefined && world.isLocked(id);
+  };
+
   const passable = (cx, cz, isStart = false) => {
     if (!world.inBounds(cx, cz)) return false;
     const t = world.tiles[world.idx(cx, cz)];
     if (t === 2 || t === 0) return false;
     if (t === 3) {
+      if (!isStart && doorLocked(cx, cz)) return false;
       if (doorsPassable) return true;
       return isStart ? true : doorOpen(cx, cz);
     }

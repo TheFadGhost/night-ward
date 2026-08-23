@@ -37,6 +37,7 @@ function restartFromCheckpoint() {
   }
   game = next;
   lastCatcher = null;
+  if (audio && typeof audio.clearCaught === 'function') audio.clearCaught();
 }
 
 const menus = new Menus(app, {

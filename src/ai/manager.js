@@ -48,9 +48,9 @@ export class AIManager {
     this._offBreaker = bus.on('breaker', (evt) => {
       if (!evt || !evt.wingId) return;
       if (evt.on) {
-        this._breaker.set(evt.wingId, this._time + (evt.dur || BLACKOUT.duration));
-      } else {
         this._breaker.delete(evt.wingId);
+      } else {
+        this._breaker.set(evt.wingId, this._time + (evt.dur || BLACKOUT.duration));
       }
     });
   }
@@ -120,8 +120,10 @@ export class AIManager {
   load(json) {
     if (!json || !Array.isArray(json.entities)) return;
     const byId = new Map(json.entities.map((e) => [e.id, e]));
-    for (let i = 0; i < this.entities.length; i++) {
-      const e = this.entities[i];
+    const brainsById = new Map(
+      Array.isArray(json.brains) ? json.brains.filter((b) => b && b.id).map((b) => [b.id, b]) : []
+    );
+    for (const e of this.entities) {
       const s = byId.get(e.id);
       if (!s) continue;
       if (Number.isFinite(s.x)) e.x = s.x;
@@ -129,7 +131,12 @@ export class AIManager {
       if (Number.isFinite(s.facing)) e.facing = s.facing;
       e.disabled = !!s.disabled;
       if (s.pingPong !== undefined) e.pingPong = !!s.pingPong;
-      if (json.brains && json.brains[i]) this.brains[i].load(json.brains[i]);
+    }
+    for (const b of this.brains) {
+      const jb = brainsById.get(b.entity.id);
+      if (!jb) continue;
+      if (typeof jb.state !== 'string' || !/^[a-z]+$/.test(jb.state)) continue;
+      b.load(jb);
     }
   }
 

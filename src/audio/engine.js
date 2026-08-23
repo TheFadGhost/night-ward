@@ -98,9 +98,17 @@ export class AudioEngine {
   }
 
   setMaster(v) {
-    this._volume = clamp(+v || 0, 0, 1.5);
-    if (this._master && this._ctx && !this._muted && !this._caught) {
-      this._master.gain.setTargetAtTime(this._volume, this._ctx.currentTime, 0.05);
+    if (this._master && this._ctx) {
+      this._master.gain.setTargetAtTime(this._muted ? 0.0001 : this._volume, this._ctx.currentTime, 0.03);
+    }
+    this._volume = Math.max(0, Math.min(1.5, v));
+  }
+
+  clearCaught() {
+    this._caught = false;
+    if (this._master && this._ctx) {
+      this._master.gain.cancelScheduledValues(this._ctx.currentTime);
+      this._master.gain.setTargetAtTime(this._muted ? 0.0001 : this._volume, this._ctx.currentTime, 0.05);
     }
   }
 
