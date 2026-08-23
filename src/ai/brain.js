@@ -176,14 +176,14 @@ export class Brain {
     this.repathT = 0;
   }
 
-  enterChase(detail, x, z) {
+  enterChase(detail, x, z, incidentKind = 'spotted') {
     this.setState(AI_STATE.CHASE);
     this.lostT = 0;
     this.repathT = 0;
     this.caughtFired = false;
     this.radioAt = this.time;
     this.justChased = true;
-    this.logIncident('spotted', detail, x, z);
+    this.logIncident(incidentKind, detail, x, z);
     bus.emit('alert', { aiId: this.entity.id, kind: 'chase' });
   }
 
@@ -236,9 +236,11 @@ export class Brain {
     if (vis && vis.seen) {
       this.suspicion += SUSPICION.riseRate * vis.exposure * dt;
       this.lostT = 0;
+      this.lastSeenT = 0;
       seenPos = { x: player.x, z: player.z };
       if (this.state === AI_STATE.CHASE) this.lastKnown = { x: player.x, z: player.z };
     } else {
+      this.lastSeenT = (this.lastSeenT ?? 99) + dt;
       const halved =
         this.state === AI_STATE.SUSPICIOUS || this.state === AI_STATE.INVESTIGATE;
       this.suspicion -= SUSPICION.fallRate * (halved ? 0.5 : 1) * dt;
@@ -294,7 +296,7 @@ export class Brain {
         : this.lastKnown
         ? this.lastKnown.z
         : e.z;
-      this.enterChase(detail, px, pz);
+      this.enterChase(detail, px, pz, seenPos ? 'spotted' : 'heard');
     } else if (
       prev < SUSPICION.investigateAt &&
       this.suspicion >= SUSPICION.investigateAt &&
@@ -387,7 +389,7 @@ export class Brain {
       return;
     }
     const wp = route[Math.min(this.wpIdx, route.length - 1)];
-    if (this.gotoPoint(wp, e.profile.speedPatrol, dt)) {
+    if (this.gotoPoint(wp, e.profile.speedPatrol * (e.patrolBoost || 1), dt)) {
       if (route.length > 1) {
         if (e.pingPong || e.profile.railOnly) {
           this.wpIdx += this.wpDir;

@@ -6,9 +6,12 @@ import { TILE, CELL } from '../src/core/constants.js';
 function makeWorld(level) {
   const w = new World(level);
   for (const f of level.fixtures) w.registerFixture(f);
-  for (const m of level.masks) w.registerMask(m);
+  for (const v of level.objects.valves) {
+    w.registerMask({ id: v.id + ':steam', x: v.zone.x, z: v.zone.z, r: v.zone.r, strength: 1 });
+  }
   for (const d of level.objects.doors) {
     w.registerDoor(d.id, (d.cx + 0.5) * CELL, (d.cz + 0.5) * CELL);
+    if (d.locked) w.lockDoor(d.id);
   }
   return w;
 }

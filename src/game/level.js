@@ -82,7 +82,12 @@ export function buildLevel() {
   for (const x of [8, 9]) set(x, 38, TILE.FLOOR);
   rect(17, 41, 22, 41, TILE.FLOOR);
   rect(24, 39, 39, 45, TILE.FLOOR);
-  for (const x of [30, 31, 32, 33]) set(x, 38, TILE.FLOOR);
+  for (const x of [30, 31, 32, 33]) {
+    set(x, 38, TILE.CARPET);
+    set(x, 39, TILE.CARPET);
+    set(x, 40, TILE.CARPET);
+  }
+  for (const x of [29, 34]) set(x, 39, TILE.CARPET);
   set(23, 41, TILE.DOOR);
   set(27, 41, TILE.WALL);
   set(35, 41, TILE.WALL);
@@ -160,7 +165,7 @@ export function buildLevel() {
   const seals = [
     { id: 'seal1', n: 1, ...wc(13, 16) },
     { id: 'seal2', n: 2, ...wc(60, 23) },
-    { id: 'seal3', n: 3, ...wc(31, 42) },
+    { id: 'seal3', n: 3, ...wc(37, 44) },
   ];
 
   const breakers = [
@@ -171,6 +176,7 @@ export function buildLevel() {
   const valves = [
     { id: 'vlv1', ...wc(12, 36), zone: { x: 31, z: 73, r: 6 } },
     { id: 'vlv2', ...wc(49, 35), zone: { x: 95, z: 73, r: 6 } },
+    { id: 'vlv3', ...wc(28, 36), zone: { x: 63, z: 77, r: 6 } },
   ];
 
   const objects = {
@@ -186,7 +192,7 @@ export function buildLevel() {
 
   const ais = [
     { id: 'warden1', kind: 'warden', wing: 'west', ...wc(10, 15), pingPong: true, patrolRoute: [wc(10, 15), wc(10, 28)] },
-    { id: 'warden2', kind: 'warden', wing: 'west', ...wc(6, 10), pingPong: true, patrolRoute: [wc(6, 10), wc(58, 10)] },
+    { id: 'warden2', kind: 'warden', wing: 'west', ...wc(6, 10), pingPong: true, patrolRoute: [wc(6, 10), wc(40, 10)] },
     {
       id: 'warden3',
       kind: 'warden',
@@ -211,10 +217,7 @@ export function buildLevel() {
     tiles: t,
     start: wc(5, 43),
     fixtures,
-    masks: [
-      { id: 'steam1', x: 31, z: 73, r: 6, strength: 1 },
-      { id: 'steam2', x: 95, z: 73, r: 6, strength: 1 },
-    ],
+    masks: [],
     objects,
     ais,
     archiveDoors: ['d_archive_a', 'd_archive_b'],

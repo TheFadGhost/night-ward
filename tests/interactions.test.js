@@ -113,8 +113,7 @@ describe('breaker blackout cycle', () => {
     expect(world.fixtureActive(world.fixtures[0])).toBe(false);
     expect(breakerEvents).toEqual([{ wingId: 'west', on: false, dur: BLACKOUT.duration }]);
     near = objects.nearestInteractable(game.player, game);
-    expect(near.label).toBe('Restore breaker');
-
+    expect(near.label).toBe('Breaker cycling');
     expect(objects.interact(bk, game)).toBe(false);
     expect(breakerEvents.length).toBe(1);
 

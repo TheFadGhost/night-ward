@@ -10,11 +10,20 @@ export function findPath(world, sxW, szW, txW, tzW, opts = {}) {
   const tcz = Math.floor(tzW / CELL);
   if (!world.inBounds(tcx, tcz)) return null;
 
+  const doorOpen = (cx, cz) => {
+    if (!world.doors) return false;
+    const id = world.doors.get(world.idx(cx, cz));
+    return id !== undefined && world.doorOpen.has(id);
+  };
+
   const passable = (cx, cz, isStart = false) => {
     if (!world.inBounds(cx, cz)) return false;
     const t = world.tiles[world.idx(cx, cz)];
     if (t === 2 || t === 0) return false;
-    if (t === 3) return doorsPassable || (isStart && world.doorOpen.has(world.doors.get(world.idx(cx, cz))));
+    if (t === 3) {
+      if (doorsPassable) return true;
+      return isStart ? true : doorOpen(cx, cz);
+    }
     return true;
   };
 

@@ -18,16 +18,14 @@ const WARD_APPROACH = [
 const WARD_APPROACH_ARCH = [
   ...LOBBY_TO_SERVICE,
   ...SERVICE_E_TO_ARCH,
-  { type: 'until', pred: listenerAwayFrom(63, 77, 6), timeout: 40, label: 'arch-clear-n' },
+  
   { type: 'goto', cell: [31, 38], crouch: true },
-  { type: 'until', pred: listenerAwayFrom(63, 79, 6), timeout: 30, label: 'arch-clear-s' },
   { type: 'goto', cell: [29, 42], crouch: true },
 ];
 
 const ARCHIVE_AND_EXIT = [
   { type: 'goto', cell: [31, 11], crouch: true },
   { type: 'goto', cell: [32, 10], crouch: true, tol: 1.1 },
-  { type: 'goto', cell: [32, 9], crouch: true, tol: 1.15 },
   { type: 'interact' },
   { type: 'until', pred: (b) => b.g.world.isDoorOpen('d_archive_a'), timeout: 4, label: 'archive-open' },
   { type: 'goto', cell: [32, 6], crouch: true },
@@ -48,7 +46,7 @@ const ARCHIVE_AND_EXIT = [
 
 function entDist(b, idA, idB) {
   const A = b.g.ai.entities.find((e) => e.id === idA);
-  const B = idB === 'seal' ? { x: 63, z: 85 } : b.g.ai.entities.find((e) => e.id === idB);
+  const B = idB === 'seal' ? { x: 75, z: 89 } : b.g.ai.entities.find((e) => e.id === idB);
   if (!A || !B) return 999;
   return Math.hypot(A.x - B.x, A.z - B.z);
 }
@@ -69,7 +67,7 @@ export function southRuns(runPolicy) {
     () => [
       ...WARD_APPROACH_ARCH,
       { type: 'until', pred: listenerOffSeal, timeout: 30, label: 'listener-clear' },
-      { type: 'goto', cell: [31, 42], crouch: true, tol: 1.05 },
+      { type: 'goto', cell: [37, 44], crouch: true, tol: 1.05 },
       { type: 'until', pred: listenerOffSeal, timeout: 20, label: 'grab-clear' },
       { type: 'interact' },
       { type: 'until', pred: (b) => sealTaken(b, 3), timeout: 4, label: 'seal3' },
@@ -86,8 +84,7 @@ export function southRuns(runPolicy) {
       { type: 'throw', cell: [36, 44] },
       { type: 'wait', t: 1.5 },
       { type: 'until', pred: (b) => listenerState(b) !== 'patrol' || distListener(b) > 8, timeout: 15, label: 'lured-far' },
-      { type: 'until', pred: listenerAwayFrom(63, 79, 5), timeout: 30, label: 'arch-clear-b' },
-      { type: 'goto', cell: [31, 42], crouch: true, tol: 1.05 },
+      { type: 'goto', cell: [37, 44], crouch: true, tol: 1.05 },
       { type: 'until', pred: listenerOffSeal, timeout: 20, label: 'grab-window' },
       { type: 'interact' },
       { type: 'until', pred: (b) => sealTaken(b, 3), timeout: 4, label: 'seal3' },
@@ -101,13 +98,14 @@ export function southRuns(runPolicy) {
     { cautious: true, crouch: true, seal: '3', cleanBar: 0.25, surviveBar: 0.8 },
     () => [
       ...WARD_APPROACH_ARCH,
+      { type: 'until', pred: listenerOffSeal, timeout: 30, label: 'pre-lk-clear' },
       { type: 'goto', cell: [25, 44], crouch: true, tol: 1.05 },
       { type: 'until', pred: (b) => distListener(b) < 7, timeout: 18, label: 'listener-close' },
       { type: 'interact' },
       { type: 'until', pred: (b) => !!b.g.player.hiddenIn, timeout: 6, label: 'hidden' },
       { type: 'until', pred: (b) => !b.g.player.hiddenIn || distListener(b) > 6.5, timeout: 40, label: 'listener-passed' },
       { type: 'until', pred: (b) => !b.g.player.hiddenIn, timeout: 6, label: 'out' },
-      { type: 'goto', cell: [31, 42], crouch: true, tol: 1.05 },
+      { type: 'goto', cell: [37, 44], crouch: true, tol: 1.05 },
       { type: 'until', pred: listenerOffSeal, timeout: 20, label: 'clear' },
       { type: 'interact' },
       { type: 'until', pred: (b) => sealTaken(b, 3), timeout: 4, label: 'seal3' },
@@ -151,16 +149,18 @@ export function fullRuns(runPolicy, LOBBY_TO_SERVICE, ARCH_INTO_ATRIUM, NORTH_CO
       { type: 'until', pred: (b) => sealTaken(b, 2), timeout: 4, label: 'seal2' },
       { type: 'goto', cell: [58, 17], crouch: true },
       { type: 'goto', cell: [58, 12], crouch: true },
-      { type: 'goto', cell: [44, 10], crouch: true },
+      { type: 'window', id: 'warden2', pred: (e, bot) => e.x > 74 && bot.dirX('warden2') > 0, timeout: 120 },
+      { type: 'goto', cell: [44, 10], crouch: true, sprint: true },
       { type: 'goto', cell: [31, 11], crouch: true },
       { type: 'goto', cell: [31, 14], crouch: true },
       { type: 'goto', cell: [31, 24], crouch: true },
       { type: 'goto', cell: [31, 34], crouch: true },
       { type: 'goto', cell: [31, 37], crouch: true },
+      
       { type: 'goto', cell: [31, 39], crouch: true },
       { type: 'goto', cell: [31, 41], crouch: true },
       { type: 'until', pred: listenerOffSeal, timeout: 30, label: 'listener-clear' },
-      { type: 'goto', cell: [31, 42], crouch: true, tol: 1.02 },
+      { type: 'goto', cell: [37, 44], crouch: true, tol: 1.02 },
       { type: 'until', pred: listenerOffSeal, timeout: 20, label: 'clear-again' },
       { type: 'interact' },
       { type: 'until', pred: (b) => sealTaken(b, 3), timeout: 4, label: 'seal3' },
@@ -178,15 +178,14 @@ export function fullRuns(runPolicy, LOBBY_TO_SERVICE, ARCH_INTO_ATRIUM, NORTH_CO
     'full/TRICKSTER tools-and-escapes',
     { cautious: false, full: true, cleanBar: 0 },
     () => [
-      { type: 'goto', cell: [13, 41], tol: 1 },
-      { type: 'interact' },
-      ...WARD_APPROACH.slice(1),
-      { type: 'goto', cell: [29, 41] },
+      ...WARD_APPROACH_ARCH,
       { type: 'throw', cell: [37, 44] },
-      { type: 'wait', t: 1 },
-      { type: 'goto', cell: [31, 42], sprint: true, tol: 1.05 },
+      { type: 'wait', t: 0.8 },
+      { type: 'goto', cell: [37, 44], sprint: true, tol: 1.05 },
+      { type: 'goto', cell: [37, 44], sprint: true, tol: 1.05 },
       { type: 'interact' },
       { type: 'until', pred: (b) => sealTaken(b, 3), timeout: 4, label: 'seal3' },
+      { type: 'until', pred: listenerOffSeal, timeout: 25, label: 'exit-window' },
       { type: 'goto', cell: [31, 38], sprint: true },
       { type: 'goto', cell: [31, 30], sprint: true },
       { type: 'goto', cell: [40, 25], sprint: true },

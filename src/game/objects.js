@@ -2,6 +2,7 @@ import { CELL, NOISE, BLACKOUT } from '../core/constants.js';
 import { bus } from '../core/events.js';
 
 const INTERACT_RADIUS = 2.05;
+const DOOR_INTERACT_RADIUS = 2.9;
 const SMASH_RADIUS = 1.2;
 const BOTTLE_SPEED = 10;
 const BOTTLE_LIFE = 1.2;
@@ -109,8 +110,13 @@ export class Interactables {
     for (const o of this.list) {
       if (o.taken) continue;
       if (player.hiddenIn && o.kind !== 'locker') continue;
+      const rad = o.kind === 'door' ? DOOR_INTERACT_RADIUS : INTERACT_RADIUS;
       const d = Math.hypot(o.x - player.x, o.z - player.z);
-      if (d > INTERACT_RADIUS || d >= bd) continue;
+      if (d > rad || d >= bd) continue;
+      const pull = Math.min(1.5, d / 2);
+      const sx = o.x + ((player.x - o.x) / (d || 1)) * pull;
+      const sz = o.z + ((player.z - o.z) / (d || 1)) * pull;
+      if (!this.world.lineOfSight(player.x, player.z, sx, sz)) continue;
       bd = d;
       best = o;
     }
@@ -143,7 +149,7 @@ export class Interactables {
         return 'Call elevator';
       case 'breaker': {
         const ready = !o.armed && !this.world.wingBlackedOut(o.wingId);
-        return ready ? `Throw breaker — ${String(o.wingId).toUpperCase()} WING` : 'Restore breaker';
+        return ready ? `Throw breaker \u2014 ${String(o.wingId).toUpperCase()} WING` : 'Breaker cycling';
       }
       case 'valve':
         return o.mask && o.mask.on ? 'Close steam valve' : 'Open steam valve';
@@ -227,8 +233,10 @@ export class Interactables {
         return true;
       }
       case 'elevator': {
-        if (!g || !g.state.vessel) return false;
-        bus.emit('gameWon', { stats: g.stats() });
+        if (!g) return false;
+        if (!g.state.vessel) return false;
+        const stats = typeof g.stats === 'function' ? g.stats() : g.stats;
+        bus.emit('gameWon', { stats });
         return true;
       }
       case 'breaker': {
@@ -278,6 +286,13 @@ export class Interactables {
       if (d < bd) {
         bd = d;
         best = f;
+      }
+    }
+    if (best && bd <= SMASH_RADIUS) {
+      const from = this.game ? { x: this.game.player.x, z: this.game.player.z } : null;
+      const clearSight = !from || this.world.lineOfSight(from.x, from.z, best.x, best.z);
+      if (!clearSight) {
+        best = null;
       }
     }
     if (best && bd <= SMASH_RADIUS) {

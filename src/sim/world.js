@@ -159,6 +159,7 @@ export class World {
   load(json) {
     if (!json) return;
     if (Array.isArray(json.doorOpen)) this.doorOpen = new Set(json.doorOpen);
+    if (Array.isArray(json.lockedDoors)) this.lockedDoors = new Set(json.lockedDoors);
     if (Array.isArray(json.blackouts)) {
       this.blackouts = new Map(
         json.blackouts.map(([k, v]) => [

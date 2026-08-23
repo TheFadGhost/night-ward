@@ -40,7 +40,7 @@ export const ATRIUM_TO_NORTH = [
 ];
 
 export const NORTH_CORR_E = [
-  { type: 'window', id: 'warden2', pred: (e, bot) => Math.hypot(e.x - 63, e.z - 21) > 26 && bot.dirX('warden2') > 0, timeout: 140 },
+  { type: 'window', id: 'warden2', pred: (e, bot) => e.x < 50 && bot.dirX('warden2') < 0, timeout: 130 },
   { type: 'goto', cell: [44, 10], sprint: true },
   { type: 'goto', cell: [52, 10], sprint: true },
   { type: 'goto', cell: [58, 11], sprint: true },
@@ -243,6 +243,7 @@ export function wingRuns(runPolicy) {
       { type: 'goto', cell: [51, 25], crouch: true, tol: 1.35 },
       { type: 'interact' },
       { type: 'wait', t: 0.6 },
+      { type: 'window', id: 'sentinel1', pred: (e) => e.z < 40, timeout: 60 },
       { type: 'goto', cell: [54, 28], crouch: true, sentinelAware: true },
       { type: 'goto', cell: [54, 31], crouch: true, sentinelAware: true },
       { type: 'goto', cell: [54, 25], crouch: true, sentinelAware: true },

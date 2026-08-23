@@ -87,6 +87,7 @@ export class Game {
     this.objectiveText = 'Reach the elevator. Everything is restless now.';
     const ap = this.level.archiveApproach;
     for (const b of this.ai.brains) {
+      b.entity.patrolBoost = 1.15;
       if (b.entity.profile.kind !== 'warden') continue;
       if (Math.hypot(b.entity.x - ap.x, b.entity.z - ap.z) < 60) {
         b.lastKnown = { x: ap.x, z: ap.z };
@@ -103,7 +104,7 @@ export class Game {
     this.stats.time = this.time;
     this.world.setTime(this.time);
 
-    const frameNoises = this.pendingNoiseBuffer.concat(this.recentNoises);
+    const frameNoises = this.pendingNoiseBuffer;
     this.pendingNoiseBuffer = [];
 
     this.player.update(dt, input, this.world);
@@ -132,6 +133,8 @@ export class Game {
     this.ai.update(dt, ctx);
     this.objects.update(dt, this);
 
+    this.checkHideUnderChase();
+
     if (this.pendingCaughtBy && !this.won) {
       this.lost = true;
       this.player.alive = false;
@@ -144,8 +147,30 @@ export class Game {
     }
     this.pendingCaughtBy = null;
 
+    for (const n of frameNoises) {
+      n.t0 = n.t0 ?? this.time;
+      this.recentNoises.push(n);
+    }
     const cutoff = this.time - 0.85;
-    this.recentNoises = frameNoises.filter((n) => n.t0 >= cutoff);
+    this.recentNoises = this.recentNoises.filter((n) => n.t0 >= cutoff);
+  }
+
+  checkHideUnderChase() {
+    if (!this.player.hiddenIn) return;
+    for (const b of this.ai.brains) {
+      if (b.state !== 'chase') continue;
+      const ent = b.entity;
+      if (ent.profile.kind === 'listener') continue;
+      if ((b.lastSeenT ?? 99) < 1.5 && Math.hypot(ent.x - this.player.x, ent.z - this.player.z) < 11) {
+        this.pendingCaughtBy = ent.id;
+        bus.emit('incident', {
+          who: this.nameOf(ent.id),
+          kind: 'caught',
+          detail: 'saw you climb in',
+        });
+        return;
+      }
+    }
   }
 
   nameOf(aiId) {
@@ -155,11 +180,12 @@ export class Game {
   threatLevel() {
     let threat = 0;
     let chaseActive = false;
-    for (const ent of this.ai.entities) {
+    for (const b of this.ai.brains) {
+      const ent = b.entity;
       if (ent.disabled) continue;
+      const st = b.state || 'patrol';
       const d = Math.hypot(ent.x - this.player.x, ent.z - this.player.z);
       const prox = Math.max(0, 1 - d / 18);
-      const st = ent.state || 'patrol';
       let w = 0.25;
       if (['suspicious', 'investigate', 'search', 'listen'].includes(st)) w = 0.55;
       if (st === 'chase') {
@@ -167,8 +193,6 @@ export class Game {
         chaseActive = true;
       }
       threat = Math.max(threat, prox * w);
-    }
-    for (const b of this.ai.brains) {
       threat = Math.max(threat, ((b.suspicion || 0) / 100) * 0.5);
     }
     return { threat: Math.min(1, threat), chaseActive };

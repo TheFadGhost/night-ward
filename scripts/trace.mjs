@@ -1,6 +1,7 @@
 import { buildLevel } from '../src/game/level.js';
 import { Game } from '../src/game/game.js';
 import { bus } from '../src/core/events.js';
+import { findPath } from '../src/sim/pathfinding.js';
 import { Bot } from './playtest.mjs';
 import { buildAllRuns } from './policies-index.mjs';
 
@@ -44,7 +45,7 @@ bot.seq(captured(bot, game));
 const DT = 1 / 30;
 let t = 0;
 let lastLog = -2;
-while (!game.won && !game.lost && t < 240) {
+while (!game.won && !game.lost && t < 420) {
   const scaled = DT * bot.speedMul;
   const input = bot.tick(scaled);
   game.update(scaled, input);
@@ -62,6 +63,12 @@ while (!game.won && !game.lost && t < 240) {
   }
   if (bot.stuckFail) {
     events.push('STUCK ' + JSON.stringify(bot.stuckFail));
+    events.push(
+      'DBG P@' + game.player.x.toFixed(2) + ',' + game.player.z.toFixed(2) +
+      ' tile=' + game.world.tiles[game.world.idx(Math.floor(game.player.x / 2), Math.floor(game.player.z / 2))] +
+      ' doorsOpen=' + JSON.stringify([...game.world.doorOpen]) +
+      ' repath to 65,13 => ' + JSON.stringify((() => { const p = findPath(game.world, game.player.x, game.player.z, 65, 13, { doorsPassable: false }); return p && p.length; })())
+    );
     break;
   }
   if (bot.untilTimedOut) {
