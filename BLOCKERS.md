@@ -41,3 +41,6 @@ Unit tests: 54/54. Build: green.
 - Breaker prompt shows "Breaker cycling" during active blackout (no dead button).
 - AI opens unlocked doors after ~0.5s (with noise) — closing doors delays, never
   traps, AI; verified no pathing deadlock across 16-trial ensembles.
+- No README screenshots/GIF yet: headless Chrome on this machine renders WebGL
+  frames black even with swiftshader flags (`scripts/shots.mjs` kept as a
+  utility — run against any GPU-capable machine to capture real footage).
